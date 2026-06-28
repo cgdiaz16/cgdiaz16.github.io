@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Gutter - A Workspace</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!--
+    This markup is intentionally minimal: only the parts that are always
+    on screen (the masthead and the "ADD ARTICLE" control) are written
+    here by hand. Every article/panel itself is built dynamically by
+    script.js, because that's data (the widgets array), not fixed page
+    structure — see script.js for where that happens.
+  -->
+  <div class="gutter-app">
+    <header class="gutter-header">
+      <h1 class="gutter-title">The Gutter</h1>
+      <p class="gutter-tagline">
+        VOL. III <span>&mdash;</span> EST. 2026
+      </p>
+
+      <div class="gutter-add-wrap">
+        <button id="add-btn" class="gutter-add-btn" type="button">+ ADD ARTICLE</button>
+        <!-- populated by script.js from the WIDGET_TYPES registry, so a new
+             widget type only ever needs to be added in ONE place -->
+        <div id="add-menu" class="gutter-add-menu" hidden></div>
+      </div>
+    </header>
+
+    <main id="canvas" class="gutter-canvas">
+      <div id="canvas-layer" class="gutter-canvas-layer"></div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

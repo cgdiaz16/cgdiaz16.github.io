@@ -1,0 +1,482 @@
+/* =============================================================================
+   THE GUTTER — styles
+   -----------------------------------------------------------------------------
+   All color/type decisions live as custom properties on .gutter-app below.
+   Everything else in this file references those variables instead of
+   hardcoding values — that's what makes the whole theme changeable by
+   editing one small block instead of hunting through every rule.
+   ============================================================================= */
+
+/* Google-hosted blackletter face for the masthead only — body text stays in
+   a plain serif so the ornate type doesn't fight legibility anywhere it
+   actually needs to be read quickly. Requires an internet connection; falls
+   back to a generic serif if it can't load. */
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap');
+
+/* a small reset — a bare HTML page has no host page to inherit sane
+   defaults from, unlike when this ran as a React artifact inside Claude.ai */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+.gutter-app {
+  /* ===== DESIGN TOKENS ===========================================
+     Naming these once and reusing them everywhere is what keeps the
+     whole board feeling like one coherent object instead of a pile
+     of separately-styled pieces. */
+  --paper: #ece6d8;        /* the page itself — crisp, clean cream */
+  --paper-panel: #f8f4ea;  /* article surface, a shade brighter so it "lifts" off the page */
+  --paper-soft: #efe9da;   /* hover surface, between the two above */
+  --ink: #1c1812;          /* rules, borders, headlines — true print ink */
+  --accent: #33C6AA;       /* one restrained accent: a faded ink-stamp red */
+  --text: #2a2620;         /* body copy — slightly softer than rule-ink */
+  --text-dim: #6b6356;     /* bylines/captions — muted newsprint gray */
+  --display: 'UnifrakturMaguntia', 'UnifrakturCook', fantasy, serif; /* masthead only */
+  --serif: Georgia, 'Times New Roman', Times, serif; /* everything else */
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--serif);
+  overflow: auto;
+}
+
+/* ===== HEADER / MASTHEAD ========================================== */
+.gutter-header {
+  position: relative;
+  flex-shrink: 0;
+  text-align: center; /* centered nameplate, like a real masthead */
+  padding: 24px 28px 20px;
+  border-top: 1px solid var(--ink);       /* thin rule above */
+  border-bottom: 6px double var(--ink);    /* classic double rule below */
+  z-index: 1000; /* always above the canvas and its panels */
+}
+.gutter-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400; /* blackletter faces are typically a single weight */
+  font-size: 48px;
+  letter-spacing: 1px;
+  color: var(--ink); /* flat ink color — real newsprint has no drop shadows */
+  line-height: 1;
+}
+.gutter-tagline {
+  margin: 10px 0 0;
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.gutter-tagline span { color: var(--text-dim); margin: 0 8px; } /* the only color in the whole masthead */
+  /* SI LO QUIERO CON COLOR CAMBIA --teext-dim a --accent */
+
+.gutter-add-wrap { position: absolute; top: 24px; right: 28px; }
+.gutter-add-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--paper-panel);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+/* letterpress-style invert on hover, like stamping ink */
+.gutter-add-btn:hover { background: var(--ink); color: var(--paper-panel); }
+.gutter-add-menu[hidden] { display: none; }
+.gutter-add-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-panel);
+  border: 1px solid var(--ink);
+  box-shadow: 2px 3px 8px rgba(20, 15, 5, 0.18);
+  z-index: 1001;
+}
+.gutter-add-menu button {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 12px;
+  text-align: left;
+  padding: 9px 12px;
+  cursor: pointer;
+  width: 100%;
+}
+.gutter-add-menu button:hover { background: var(--paper-soft); color: var(--accent); }
+.gutter-add-menu svg { flex-shrink: 0; }
+
+/* ===== CANVAS (the page) ========================================== */
+.gutter-canvas {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.gutter-canvas-layer {
+  position: absolute;
+  width: 20000px;
+  height: 20000px;
+  transform-origin: 0 0;
+  background-color: var(--paper);
+  /* width/height/background-image/background-size are set from script.js,
+     since they depend on the grid constants (CELL_W, GAP, etc.) defined there */
+}
+
+/* ===== PANELS ("articles") ========================================
+   "Boxed like articles": a border plus a second, slightly larger outline
+   ring (outline-offset pushes it outward without taking up any layout
+   space) reproduces the classic nested double-rule box newspapers use to
+   set a feature apart from the rest of the page. The soft shadow reads as
+   the article sitting just above the page, like a clipping — deliberately
+   gentle, since "crisp & clean" ruled out anything torn, aged, or dramatic. */
+.gutter-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-panel);
+  border: 1px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 5px;
+  box-shadow: 3px 4px 10px rgba(20, 15, 5, 0.16);
+}
+.gutter-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent; /* panel's own cream shows through — no solid bar */
+  border-bottom: 1px solid var(--ink); /* the rule separating dateline from copy */
+  padding: 7px 9px;
+  cursor: grab;
+  user-select: none;
+}
+.gutter-panel-header:active { cursor: grabbing; }
+.gutter-panel-number {
+  flex-shrink: 0;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+.gutter-panel-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--serif);
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.gutter-panel-title svg { flex-shrink: 0; }
+.gutter-panel-remove {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 16px;
+  line-height: 1;
+}
+.gutter-panel-remove:hover { color: var(--accent); }
+.gutter-panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+.gutter-panel-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  /* a faint ink corner fold, not a bright cartoon tab — restrained to
+     match the "crisp & clean" direction */
+  background: linear-gradient(135deg, transparent 60%, rgba(28, 24, 18, 0.35) 60%);
+}
+
+/* ===== WIDGET CONTENT STYLES ====================================== */
+.gutter-clock {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.gutter-clock-time {
+  font-family: var(--serif);
+  font-size: 28px;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+}
+.gutter-clock-date {
+  margin-top: 6px;
+  font-family: var(--serif);
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.gutter-note {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ===== CALENDAR ==================================================== */
+.gutter-calendar { height: 100%; display: flex; flex-direction: column; }
+.gutter-cal-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.gutter-cal-month {
+  font-family: var(--serif); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink);
+}
+.gutter-cal-prev, .gutter-cal-next {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; line-height: 1; color: var(--text-dim);
+  padding: 2px 6px; font-family: var(--serif);
+}
+.gutter-cal-prev:hover, .gutter-cal-next:hover { color: var(--accent); }
+.gutter-cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 1px; text-align: center; flex: 1;
+}
+.gutter-cal-dow {
+  font-family: var(--serif); font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim);
+  padding: 2px 0 4px;
+}
+.gutter-cal-day {
+  font-family: var(--serif); font-size: 12px; color: var(--text);
+  padding: 3px 0; border-radius: 0;
+}
+.gutter-cal-day.is-today {
+  background: var(--accent); color: var(--paper-panel);
+  font-weight: 700;
+}
+
+/* ===== NOTEBOOK ====================================================== */
+.gutter-notebook {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.gutter-notebook-add {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--ink);
+  font-family: var(--serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: left;
+}
+.gutter-notebook-add:hover { color: var(--accent); }
+.gutter-notebook-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.gutter-mini-note {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-panel);
+  border: 1px solid var(--ink);
+  box-shadow: 1px 2px 6px rgba(20, 15, 5, 0.12);
+}
+.gutter-mini-note-handle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 3px 5px;
+  cursor: grab;
+  border-bottom: 1px solid rgba(28, 24, 18, 0.15);
+  min-height: 20px;
+  background: linear-gradient(to bottom, rgba(28,24,18,0.03), transparent);
+}
+.gutter-mini-note-handle:active { cursor: grabbing; }
+.gutter-mini-note-remove {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.gutter-mini-note-remove:hover { color: var(--accent); }
+.gutter-mini-note-text {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 5px 6px;
+}
+.gutter-mini-note-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 60%, rgba(28, 24, 18, 0.25) 60%);
+}
+.gutter-mini-note.is-selected {
+  outline: 1.5px solid var(--accent);
+  box-shadow: 0 0 0 2px rgba(51, 198, 170, 0.15), 1px 2px 6px rgba(20, 15, 5, 0.12);
+}
+.gutter-notebook-marquee {
+  position: absolute;
+  border: 1.5px dashed var(--accent);
+  background: rgba(51, 198, 170, 0.06);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ===== MARQUEE SELECTION =========================================== */
+.gutter-marquee {
+  position: absolute;
+  border: 1.5px dashed var(--accent);
+  background: rgba(51, 198, 170, 0.06);
+  pointer-events: none;
+  z-index: 9999;
+}
+.gutter-panel.is-selected {
+  outline-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(51, 198, 170, 0.18), 3px 4px 10px rgba(20, 15, 5, 0.16);
+}
+
+/* ===== TO-DO ====================================================== */
+.gutter-todo { height: 100%; display: flex; flex-direction: column; }
+.gutter-todo-list {
+  list-style: none; margin: 0; padding: 0;
+  flex: 1; overflow-y: auto;
+}
+.gutter-todo-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 0; border-bottom: 1px solid var(--border);
+}
+.gutter-todo-cb { margin: 0; cursor: pointer; accent-color: var(--accent); }
+.gutter-todo-text {
+  flex: 1; font-family: var(--serif); font-size: 13px; color: var(--text);
+}
+.gutter-todo-item.is-done .gutter-todo-text {
+  text-decoration: line-through; opacity: 0.45;
+}
+.gutter-todo-del {
+  background: none; border: none; color: var(--muted);
+  font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px;
+}
+.gutter-todo-del:hover { color: var(--text); }
+.gutter-todo-form { margin-top: 6px; }
+.gutter-todo-input {
+  width: 100%; box-sizing: border-box;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); font-family: var(--serif); font-size: 13px;
+  padding: 4px 6px; outline: none;
+}
+.gutter-todo-input:focus { border-color: var(--accent); }
+
+/* ===== REDDIT ===================================================== */
+.gutter-reddit { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.gutter-reddit-header {
+  display: flex; align-items: center; gap: 0; margin-bottom: 6px;
+  border-bottom: 1px solid var(--border); padding-bottom: 6px;
+}
+.gutter-reddit-prefix {
+  font-family: var(--serif); font-size: 13px; font-weight: 700;
+  color: var(--muted); flex-shrink: 0;
+}
+.gutter-reddit-sub-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--serif); font-size: 13px;
+  font-weight: 700; min-width: 0;
+}
+.gutter-reddit-feed, .gutter-reddit-detail {
+  flex: 1; overflow-y: auto;
+}
+.gutter-reddit-row {
+  display: flex; gap: 8px; padding: 6px 2px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.gutter-reddit-row:hover { background: rgba(128,128,128,0.08); }
+.gutter-reddit-score {
+  flex-shrink: 0; width: 36px; text-align: right;
+  font-family: var(--serif); font-size: 12px; font-weight: 700;
+  color: var(--accent); padding-top: 2px;
+}
+.gutter-reddit-info { flex: 1; min-width: 0; }
+.gutter-reddit-row-title {
+  font-family: var(--serif); font-size: 13px; color: var(--text);
+  line-height: 1.3; overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.gutter-reddit-row-meta {
+  font-family: var(--serif); font-size: 11px; color: var(--muted); margin-top: 2px;
+}
+.gutter-reddit-back {
+  background: none; border: none; color: var(--accent);
+  font-family: var(--serif); font-size: 12px; cursor: pointer;
+  padding: 0; margin-bottom: 8px;
+}
+.gutter-reddit-back:hover { text-decoration: underline; }
+.gutter-reddit-post-title {
+  font-family: var(--serif); font-size: 15px; font-weight: 700;
+  color: var(--text); margin: 0 0 6px;
+}
+.gutter-reddit-post-meta {
+  font-family: var(--serif); font-size: 11px; color: var(--muted); margin-bottom: 10px;
+}
+.gutter-reddit-post-body {
+  font-family: var(--serif); font-size: 13px; color: var(--text);
+  line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+}
+.gutter-reddit-img { max-width: 100%; border-radius: 3px; }
+.gutter-reddit-link { color: var(--accent); word-break: break-all; }
+.gutter-reddit-loading {
+  font-family: var(--serif); font-size: 13px; color: var(--muted);
+  padding: 12px 0;
+}
+
+/* ===== ACCESSIBILITY ============================================== */
+/* a visible focus ring on every interactive element, using the accent
+   color so keyboard navigation stays on-theme */
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
